@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram File Transfer Bot</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot"></i> File Transfer Bot
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('config') }}">
+                    <i class="fas fa-cog"></i> Config
+                </a>
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 mb-3">
+                        <i class="fas fa-exchange-alt text-primary"></i>
+                        File Transfer Bot
+                    </h1>
+                    <p class="lead">Transfer files seamlessly between Telegram, Google Drive, and handle torrent downloads</p>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-cog"></i> Bot Setup
+                        </h5>
+                        
+                        {% if bot_token %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> Bot token is configured
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Bot token not configured. Set TELEGRAM_BOT_TOKEN environment variable.
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Webhook URL:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="{{ webhook_url }}" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ webhook_url }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {% if bot_token %}
+                            <form method="POST" action="{{ url_for('set_webhook') }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-link"></i> Set Webhook
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-robot"></i> Bot Commands
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-upload text-success"></i> Upload Commands</h6>
+                                <ul class="list-unstyled">
+                                    <li><code>/start</code> - Show welcome message</li>
+                                    <li><code>/upload [URL]</code> - Upload from URL</li>
+                                    <li><code>/torrent [magnet]</code> - Handle torrent</li>
+                                    <li>Send file directly to upload</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-download text-info"></i> Download Commands</h6>
+                                <ul class="list-unstyled">
+                                    <li><code>/download [drive_link]</code> - Download from Google Drive</li>
+                                    <li><code>/status</code> - Check bot status</li>
+                                    <li><code>/help</code> - Show detailed help</li>
+                                    <li>Send Google Drive link to download</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle"></i> Features
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="feature-box text-center p-3">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
+                                    <h6>Google Drive Upload</h6>
+                                    <p class="small">Upload files directly to your Google Drive from Telegram</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="feature-box text-center p-3">
+                                    <i class="fas fa-cloud-download-alt fa-2x text-success mb-2"></i>
+                                    <h6>Google Drive Download</h6>
+                                    <p class="small">Download files from Google Drive to Telegram</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="feature-box text-center p-3">
+                                    <i class="fas fa-magnet fa-2x text-warning mb-2"></i>
+                                    <h6>Torrent Support</h6>
+                                    <p class="small">Basic torrent handling and processing</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-shield-alt"></i> Security & Limits
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>File Limits</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success"></i> Max file size: 50MB</li>
+                                    <li><i class="fas fa-check text-success"></i> Multiple file formats supported</li>
+                                    <li><i class="fas fa-check text-success"></i> Automatic file validation</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Security Features</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success"></i> Secure API connections</li>
+                                    <li><i class="fas fa-check text-success"></i> Temporary file cleanup</li>
+                                    <li><i class="fas fa-check text-success"></i> Error handling & logging</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-4 bg-dark">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-robot"></i> 
+                Telegram File Transfer Bot - Seamless file management across platforms
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
