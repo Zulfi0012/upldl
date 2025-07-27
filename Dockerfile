@@ -1,29 +1,23 @@
-FROM python:3.11-slim
+# Use a lightweight Python image
+FROM python:3.10-slim
 
-# Set working directory
+# Set working directory inside container
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (optional, if your code needs them)
+RUN apt-get update && apt-get install -y curl ffmpeg unzip && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e .
+# Copy Python dependencies
+COPY requirements.txt ./
 
-# Copy application files
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project
 COPY . .
 
-# Create temp directory
-RUN mkdir -p temp_files
+# Expose port (if using Flask or FastAPI web interface)
+EXPOSE 8000
 
-# Expose port
-EXPOSE 5000
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV FLASK_APP=main.py
-
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--reuse-port", "--reload", "main:app"]
+# Start the bot (change this if your main file is different)
+CMD ["python", "main.py"]

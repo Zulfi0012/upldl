@@ -192,7 +192,7 @@ class FileUtils:
             
             # Check file size
             if file_info['size'] > Config.MAX_FILE_SIZE:
-                return False, f"File too large (max {Config.MAX_FILE_SIZE // (1024*1024)}MB)"
+                return False, f"File too large (max {Config.MAX_FILE_SIZE // (2*1024*1024*1024)}MB)"
             
             # Check if file type is supported
             if not file_info['supported']:

@@ -148,7 +148,7 @@ class BotHandler:
 • File Storage: ✅ Ready
 
 💾 Configuration:
-• Max file size: {Config.MAX_FILE_SIZE // (1024*1024)}MB
+• Max file size: {Config.MAX_FILE_SIZE // (2*1024*1024*1024)}MB
 • Temp storage: {Config.TEMP_STORAGE_PATH}"""
             
             return self.send_message(chat_id, status_message)
